@@ -32,7 +32,7 @@ class Game:
         self.calculated_mouse_pos = []
 
         ppos = self.tile_manager.iso_to_screen(self.player.pos)
-        self.scroll = [ppos[0]+halfWIDTH, ppos[1]+halfHEIGHT]
+        self.scroll = [ppos[0]+halfWIDTH-16, ppos[1]+halfHEIGHT-16]
 
 
     def key_check(self):
@@ -57,11 +57,14 @@ class Game:
     def update(self):
         self.current_z = self.player.pos[2]
         ppos = self.tile_manager.iso_to_screen(self.player.pos)
-        self.scroll = [ppos[0] + halfWIDTH, ppos[1] + halfHEIGHT]
+        self.scroll = [ppos[0]-(16 * self.scale) + halfWIDTH, ppos[1]-(16 * self.scale) + halfHEIGHT]
 
     def draw(self):
         self.tile_manager.draw()
         self.player.draw()
+        s = pygame.surface.Surface((3,3))
+        s.fill("red")
+        self.screen.blit(s, (halfWIDTH-1, halfHEIGHT-1))
 
     def main_loop_test(self):
         while self.main_loop_running:
@@ -75,5 +78,5 @@ class Game:
 
 if __name__ == '__main__':
     game = Game()
-    game.tile_manager.load_rect("templateTile", (0,0,-7), (8, 8, 8))
+    game.tile_manager.load_rect("templateTile", (0,0,-8), (8, 8, 8))
     game.main_loop_test()

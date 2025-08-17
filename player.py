@@ -1,7 +1,7 @@
 from config import *
 
 class Player:
-    def __init__(self, game, pos=[2,0,2]):
+    def __init__(self, game, pos=[1,1,0]):
         self.game = game
         self.pos = pos
         self.img = pygame.image.load("assets/player/player.png")
@@ -11,4 +11,4 @@ class Player:
         pass
 
     def draw(self):
-        self.game.screen.blit(self.image, (halfWIDTH, halfHEIGHT-8))
+        self.game.screen.blit(self.image, (halfWIDTH-16*self.game.scale, halfHEIGHT))

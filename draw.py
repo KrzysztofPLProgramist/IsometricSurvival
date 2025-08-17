@@ -5,13 +5,14 @@ class TileManager:
         self.game = game
         self.tiles = {}
         self.changes = {}
+        self.tile_cache = {}
 
     def load_rect(self, name, start_pos, size):
         for x in range(size[0]):
             for y in range(size[1]):
                 for z in range(size[2]):
                     pos = (start_pos[0] + x, start_pos[1] + y, start_pos[2] + z)
-                    self.tiles[pos] = Tile(pos[0], pos[1], pos[2], self.game, name=name)
+                    self.tiles[pos] = Tile(pos[0], pos[1], pos[2], self.game, self, name=name)
 
     def draw(self):
         for pos, tile in sorted(self.tiles.items(), key=lambda item: (item[0][0] + item[0][1], item[0][2])):
@@ -20,8 +21,8 @@ class TileManager:
             tpos[0] += self.game.scroll[0]
             tpos[1] += self.game.scroll[1]
             if pos[2]-1<=self.game.current_z:
-                if self.game.player.pos[0]-1 <= pos[0] <= self.game.player.pos[0]+1 and \
-                    self.game.player.pos[1]-1 <= pos[1]<=self.game.player.pos[1]+1and pos[2]==self.game.player.pos[2]:
+                if self.game.player.pos[0]-2 <= pos[0] <= self.game.player.pos[0]+2 and \
+                    self.game.player.pos[1]-2 <= pos[1]<=self.game.player.pos[1]+2and pos[2]==self.game.player.pos[2]-1:
                     img = tile.image.copy()
                     img.set_alpha(120)
                     self.game.screen.blit(img, tpos)
@@ -40,11 +41,16 @@ class TileManager:
         return [sx, sy]
 
 class Tile:
-    def __init__(self, x, y, z, game, name="templateTile"):
+    def __init__(self, x, y, z, game, tile_handler, name="templateTile"):
         self.game = game
+        self.tile_handler = tile_handler
         self.name = name
-        self.image = pygame.image.load(f"assets/tiles/{self.name}.png")
-        self.img = self.image
+        if name not in self.tile_handler.tile_cache:
+            a = pygame.image.load(f"assets/tiles/{name}.png")
+            tile_handler.tile_cache[name] = a
+        else:
+            a = tile_handler.tile_cache[name]
+        self.img = a
         self.image = pygame.transform.scale_by(self.img, self.game.scale)
 
         self.x, self.y, self.z = x,y,z
