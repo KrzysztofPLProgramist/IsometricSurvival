@@ -1,7 +1,7 @@
 from config import *
 
 class Player:
-    def __init__(self, game, pos=[0,0,0]):
+    def __init__(self, game, pos=[2,0,2]):
         self.game = game
         self.pos = pos
         self.img = pygame.image.load("assets/player/player.png")

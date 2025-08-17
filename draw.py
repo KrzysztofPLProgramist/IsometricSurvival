@@ -19,9 +19,15 @@ class TileManager:
             tpos = self.iso_to_screen(pos)
             tpos[0] += self.game.scroll[0]
             tpos[1] += self.game.scroll[1]
-            if pos[2]+1<=self.game.current_z:
-                self.game.screen.blit(tile.image, tpos)
-            elif pos[2]<=self.game.current_z:
+            if pos[2]-1<=self.game.current_z:
+                if self.game.player.pos[0]-1 <= pos[0] <= self.game.player.pos[0]+1 and \
+                    self.game.player.pos[1]-1 <= pos[1]<=self.game.player.pos[1]+1and pos[2]==self.game.player.pos[2]:
+                    img = tile.image.copy()
+                    img.set_alpha(120)
+                    self.game.screen.blit(img, tpos)
+                else:
+                    self.game.screen.blit(tile.image, tpos)
+            elif pos[2]-2<=self.game.current_z:
                 img = tile.image.copy()
                 img.set_alpha(120)
                 self.game.screen.blit(img, tpos)

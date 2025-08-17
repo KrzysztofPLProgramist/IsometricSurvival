@@ -55,7 +55,9 @@ class Game:
                     self.m1_down_tf = True
 
     def update(self):
-        pass
+        self.current_z = self.player.pos[2]
+        ppos = self.tile_manager.iso_to_screen(self.player.pos)
+        self.scroll = [ppos[0] + halfWIDTH, ppos[1] + halfHEIGHT]
 
     def draw(self):
         self.tile_manager.draw()
@@ -73,5 +75,5 @@ class Game:
 
 if __name__ == '__main__':
     game = Game()
-    game.tile_manager.load_rect("templateTile", (0,0,-8), (8, 8, 8))
+    game.tile_manager.load_rect("templateTile", (0,0,-7), (8, 8, 8))
     game.main_loop_test()
