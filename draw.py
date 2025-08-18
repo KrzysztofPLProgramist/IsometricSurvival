@@ -7,24 +7,75 @@ class TileManager:
         self.changes = {}
         self.tile_cache = {}
 
-    def load_rect(self, name, start_pos, size):
+    def get_tile(self, pos):
+        return self.tiles[pos] if self.tiles.get(pos) else None
+
+    def tile_distance(self, a, b):
+        """
+        Returns distance between two tiles (in tiles).
+        a, b = (x, y, z) tuples
+        """
+        ax, ay, az = a
+        bx, by, bz = b
+
+        dx = ax - bx
+        dy = ay - by
+        dz = az - bz
+
+        # 3D Manhattan distance (grid steps)
+        return abs(dx) + abs(dy) + abs(dz)
+
+    def load_rect(self, name, start_pos, size, tags=None):
+        if tags is None:
+            tags = ["solid", "can_stand_on"]
         for x in range(size[0]):
             for y in range(size[1]):
                 for z in range(size[2]):
                     pos = (start_pos[0] + x, start_pos[1] + y, start_pos[2] + z)
-                    self.tiles[pos] = Tile(pos[0], pos[1], pos[2], self.game, self, name=name)
+                    self.tiles[pos] = Tile(pos[0], pos[1], pos[2], self.game, self, name=name, tags=tags)
+
+    def screen_to_iso(self, mouse_pos, z=0):
+        mx, my = mouse_pos
+
+        mx -= halfWIDTH
+        my -= halfHEIGHT
+
+        A = mx / (TILE_SIZE // 2 * self.game.scale)
+        B = (my + z * (TILE_SIZE // 2 * self.game.scale)) / (TILE_SIZE // 4 * self.game.scale)
+
+        x = (A + B) / 2 + self.game.player.pos[0]
+        y = (B - A) / 2 + self.game.player.pos[1]
+
+        return int(x // 1) - 1, int(y // 1) - 1, z
+
 
     def draw(self):
         for pos, tile in sorted(self.tiles.items(), key=lambda item: (item[0][0] + item[0][1], item[0][2])):
             tile:Tile
-            tpos = self.iso_to_screen(pos)
-            tpos[0] += self.game.scroll[0]
-            tpos[1] += self.game.scroll[1]
+
+            vibe_check = self.tiles.get((pos[0],pos[1],pos[2]+1))
+            if vibe_check:
+                if vibe_check.get_tag("solid"):
+                    continue
+            dpos = list(pos)
+            dpos[0] -= self.game.player.pos[0]
+            dpos[1] -= self.game.player.pos[1]
+            dpos[2] -= self.game.player.pos[2]
+            if self.game.calculated_mouse_pos == (pos[0],pos[1],pos[2]+1) and not vibe_check:
+                dpos[2] += 0.05
+            tpos = self.iso_to_screen(dpos)
+            tpos[0] += halfWIDTH - 16 * self.game.scale
+            tpos[1] += halfHEIGHT + 2 * self.game.scale
+
             if pos[2]-1<=self.game.current_z:
-                if self.game.player.pos[0]-2 <= pos[0] <= self.game.player.pos[0]+2 and \
-                    self.game.player.pos[1]-2 <= pos[1]<=self.game.player.pos[1]+2and pos[2]==self.game.player.pos[2]-1:
+                a = 3
+                if self.game.player.pos[0] <= pos[0] <= self.game.player.pos[0]+a and \
+                    self.game.player.pos[1] <= pos[1]<=self.game.player.pos[1]+a and pos[2]==self.game.player.pos[2]:
                     img = tile.image.copy()
-                    img.set_alpha(120)
+                    if self.game.player.pos[0]+1 >= pos[0] and self.game.player.pos[1]+1 >= pos[1]:
+                        img.set_alpha(70)
+                    else:
+                        img.set_alpha(30)
                     self.game.screen.blit(img, tpos)
                 else:
                     self.game.screen.blit(tile.image, tpos)
@@ -41,8 +92,11 @@ class TileManager:
         return [sx, sy]
 
 class Tile:
-    def __init__(self, x, y, z, game, tile_handler, name="templateTile"):
+    def __init__(self, x, y, z, game, tile_handler, name="templateTile", tags=None):
+        if tags is None:
+            tags = []
         self.game = game
+        self.tags = tags
         self.tile_handler = tile_handler
         self.name = name
         if name not in self.tile_handler.tile_cache:
@@ -54,3 +108,6 @@ class Tile:
         self.image = pygame.transform.scale_by(self.img, self.game.scale)
 
         self.x, self.y, self.z = x,y,z
+
+    def get_tag(self, tag):
+        return self.tags.__contains__(tag)
