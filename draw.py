@@ -5,7 +5,7 @@ class TileManager:
         self.game = game
         self.tiles = {}
         self.changes = {}
-        self.tile_cache = {}
+        self.tile_cache = {"yellowDot": pygame.image.load("assets/tiles/yellowDot.png")}
 
     def get_tile(self, pos):
         return self.tiles[pos] if self.tiles.get(pos) else None
@@ -38,7 +38,7 @@ class TileManager:
         mx, my = mouse_pos
 
         mx -= halfWIDTH
-        my -= halfHEIGHT
+        my -= halfHEIGHT - 16 * self.game.scale
 
         A = mx / (TILE_SIZE // 2 * self.game.scale)
         B = (my + z * (TILE_SIZE // 2 * self.game.scale)) / (TILE_SIZE // 4 * self.game.scale)
@@ -53,19 +53,17 @@ class TileManager:
         for pos, tile in sorted(self.tiles.items(), key=lambda item: (item[0][0] + item[0][1], item[0][2])):
             tile:Tile
 
-            vibe_check = self.tiles.get((pos[0],pos[1],pos[2]+1))
-            if vibe_check:
-                if vibe_check.get_tag("solid"):
+            underground_check = self.tiles.get((pos[0],pos[1],pos[2]+1))
+            if underground_check:
+                if underground_check.get_tag("solid"):
                     continue
             dpos = list(pos)
             dpos[0] -= self.game.player.pos[0]
             dpos[1] -= self.game.player.pos[1]
             dpos[2] -= self.game.player.pos[2]
-            if self.game.calculated_mouse_pos == (pos[0],pos[1],pos[2]+1) and not vibe_check:
-                dpos[2] += 0.05
             tpos = self.iso_to_screen(dpos)
-            tpos[0] += halfWIDTH - 16 * self.game.scale
-            tpos[1] += halfHEIGHT + 2 * self.game.scale
+            tpos[0] += halfWIDTH - (TILE_SIZE//2) * self.game.scale
+            tpos[1] += halfHEIGHT - (TILE_SIZE//2-2) * self.game.scale
 
             if pos[2]-1<=self.game.current_z:
                 a = 3
@@ -83,6 +81,12 @@ class TileManager:
                 img = tile.image.copy()
                 img.set_alpha(120)
                 self.game.screen.blit(img, tpos)
+
+            if self.game.calculated_mouse_pos == (pos[0],pos[1],pos[2]+1) and not underground_check:
+                # dpos[2] += 0.05
+                self.game.screen.blit(self.tile_cache.get("yellowDot"), (tpos[0],tpos[1]+TILE_SIZE*self.game.scale))
+                print("d")
+                pass
 
     def iso_to_screen(self, pos):
         x, y, z = pos

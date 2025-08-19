@@ -31,4 +31,4 @@ class Player:
                 self.move_cooldown = 0.5
 
     def draw(self):
-        self.game.screen.blit(self.image, (halfWIDTH-16*self.game.scale, halfHEIGHT))
+        self.game.screen.blit(self.image, (halfWIDTH-16*self.game.scale, halfHEIGHT-16*self.game.scale))

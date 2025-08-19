@@ -68,7 +68,7 @@ class Game:
         self.calculated_mouse_pos = self.tile_manager.screen_to_iso(self.mouse_pos, self.current_z)
         c = self.calculated_mouse_pos
         self.current_tile = self.tile_manager.get_tile(c)
-        if self.current_tile is None or self.current_tile.get_tag("pass_throughs"):
+        if self.current_tile is None or self.current_tile.get_tag("pass_through"):
             self.current_tile = self.tile_manager.get_tile((c[0],c[1],c[2]-1))
 
 
