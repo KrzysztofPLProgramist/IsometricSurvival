@@ -24,11 +24,12 @@ class Player:
                 self.destination_tile = self.game.current_tile
 
         if self.destination is not None and self.move_cooldown == 0:
-            if self.destination_tile is None or self.destination_tile.get_tag("can_stand_on"):
-                self.pos = self.destination
-                self.destination = None
+            # if self.destination_tile is None or self.destination_tile.get_tag("can_stand_on"):
+            self.game.tile_manager.get_tile(self.destination).has_tag()
+            self.pos = self.destination
+            self.destination = None
 
-                self.move_cooldown = 0.5
+            self.move_cooldown = 0.5
 
     def draw(self):
         self.game.screen.blit(self.image, (halfWIDTH-16*self.game.scale, halfHEIGHT-16*self.game.scale))

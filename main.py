@@ -36,6 +36,8 @@ class Game:
 
         self.current_tile = None
 
+        self.z_offset = 0
+
         # ppos = self.tile_manager.iso_to_screen(self.player.pos)
         # self.scroll = [ppos[0]+halfWIDTH-16, ppos[1]+halfHEIGHT-16]
 
@@ -52,6 +54,15 @@ class Game:
 
         if keys[pygame.K_ESCAPE]: self.main_loop_running = False
 
+        # if keys[pygame.K_LEFT]:
+        #     self.camera_offset[0] -= 1
+        #     self.camera_offset[1] -= 1
+        # if keys[pygame.K_RIGHT]:
+        #     self.camera_offset[0] += 1
+        #     self.camera_offset[1] += 1
+        if keys[pygame.K_UP]: self.z_offset += 1
+        if keys[pygame.K_DOWN]: self.z_offset -= 1
+
 
     def events(self):
         self.m1_down_tf = False
@@ -63,13 +74,13 @@ class Game:
                     self.m1_down_tf = True
 
     def update(self):
-        self.current_z = self.player.pos[2]
+        self.current_z = self.player.pos[2] + self.z_offset
         self.mouse_pos = pygame.mouse.get_pos()
         self.calculated_mouse_pos = self.tile_manager.screen_to_iso(self.mouse_pos, self.current_z)
         c = self.calculated_mouse_pos
-        self.current_tile = self.tile_manager.get_tile(c)
-        if self.current_tile is None or self.current_tile.get_tag("pass_through"):
-            self.current_tile = self.tile_manager.get_tile((c[0],c[1],c[2]-1))
+        self.current_tile = self.tile_manager.get_tile((c[0]+self.current_z,c[1]+self.current_z,c[2]+self.current_z-1))
+        # if self.current_tile is None or self.current_tile.get_tag("pass_through"):
+        #     self.current_tile = self.tile_manager.get_tile((c[0],c[1],c[2]-1))
 
 
         self.player.update()
@@ -87,6 +98,8 @@ class Game:
         self.text(f"Active tile name: {self.current_tile.name if self.current_tile is not None else "None"}", (10, 40), "black")
         self.text(f"FPS: {self.clock.get_fps()}", (10, 70), "black")
         self.text(f"Move cooldown: {self.player.move_cooldown}", (10, 100), "black")
+        self.text(f"Cam offset: {self.z_offset}", (10, 130), "black")
+        self.text(f"Current z: {self.current_z}", (10, 160), "black")
 
     def main_loop_test(self):
         while self.main_loop_running:
@@ -102,5 +115,6 @@ class Game:
 
 if __name__ == '__main__':
     game = Game()
-    game.tile_manager.load_rect("stone", (-8,-8,-8), (16, 16, 8))
+    game.tile_manager.load_rect("stone", (-4,-4,-4), (8, 8, 4))
+    game.tile_manager.load_rect("stone", (-12,-12,-8), (16, 16, 4))
     game.main_loop_test()

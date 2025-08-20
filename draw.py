@@ -8,7 +8,13 @@ class TileManager:
         self.tile_cache = {"yellowDot": pygame.image.load("assets/tiles/yellowDot.png")}
 
     def get_tile(self, pos):
-        return self.tiles[pos] if self.tiles.get(pos) else None
+        if self.tiles.get(tuple(pos)):
+            return self.tiles[pos]
+        else:
+            self.set_tile(pos, Tile(pos, self.game, "gas"))
+
+    def set_tile(self, pos, tile):
+        self.tiles[tuple(pos)] = tile
 
     def tile_distance(self, a, b):
         """
@@ -32,7 +38,7 @@ class TileManager:
             for y in range(size[1]):
                 for z in range(size[2]):
                     pos = (start_pos[0] + x, start_pos[1] + y, start_pos[2] + z)
-                    self.tiles[pos] = Tile(pos[0], pos[1], pos[2], self.game, self, name=name, tags=tags)
+                    self.tiles[pos] = Tile(pos, self.game, name=name, tags=tags)
 
     def screen_to_iso(self, mouse_pos, z=0):
         mx, my = mouse_pos
@@ -48,70 +54,94 @@ class TileManager:
 
         return int(x // 1) - 1, int(y // 1) - 1, z
 
-
     def draw(self):
+        """
+        Draw tiles with z_offset controlling which layers are visible.
+        - current layer = fully visible
+        - one layer above = faded
+        - deeper layers = hidden
+        """
+        # sort by depth for proper isometric rendering
         for pos, tile in sorted(self.tiles.items(), key=lambda item: (item[0][0] + item[0][1], item[0][2])):
-            tile:Tile
+            tile: Tile
 
-            underground_check = self.tiles.get((pos[0],pos[1],pos[2]+1))
-            if underground_check:
-                if underground_check.get_tag("solid"):
-                    continue
-            dpos = list(pos)
-            dpos[0] -= self.game.player.pos[0]
-            dpos[1] -= self.game.player.pos[1]
-            dpos[2] -= self.game.player.pos[2]
-            tpos = self.iso_to_screen(dpos)
+            if tile.name == "gas":
+                continue
+
+            ppos = list(pos)
+            ppos[0] -= self.game.player.pos[0]
+            ppos[1] -= self.game.player.pos[1]
+            ppos[2] -= self.game.player.pos[2]
+            tpos = self.iso_to_screen(ppos)
             tpos[0] += halfWIDTH - (TILE_SIZE//2) * self.game.scale
-            tpos[1] += halfHEIGHT - (TILE_SIZE//2-2) * self.game.scale
+            # tpos[1] += halfHEIGHT + (TILE_SIZE//2-2) * self.game.scale
+            tpos[1] += halfHEIGHT - (TILE_SIZE//2) * self.game.scale
 
-            if pos[2]-1<=self.game.current_z:
-                a = 3
-                if self.game.player.pos[0] <= pos[0] <= self.game.player.pos[0]+a and \
-                    self.game.player.pos[1] <= pos[1]<=self.game.player.pos[1]+a and pos[2]==self.game.player.pos[2]:
-                    img = tile.image.copy()
-                    if self.game.player.pos[0]+1 >= pos[0] and self.game.player.pos[1]+1 >= pos[1]:
-                        img.set_alpha(70)
-                    else:
-                        img.set_alpha(30)
-                    self.game.screen.blit(img, tpos)
-                else:
-                    self.game.screen.blit(tile.image, tpos)
-            elif pos[2]-2<=self.game.current_z:
-                img = tile.image.copy()
-                img.set_alpha(120)
+            if tile is self.game.current_tile:
+                tpos[1] += 0.1
+
+            # compute how far this tile's z is from current z
+            dz = pos[2] - self.game.current_z + 1
+
+            if dz == 0 or dz == -1:
+                # current layer = normal
+                self.game.screen.blit(tile.image, tpos)
+
+            elif dz == 1:
+                # one layer above = faded
+                img = tile.image_faded if hasattr(tile, "image_faded") else self.make_faded(tile)
                 self.game.screen.blit(img, tpos)
 
-            if self.game.calculated_mouse_pos == (pos[0],pos[1],pos[2]+1) and not underground_check:
-                # dpos[2] += 0.05
-                self.game.screen.blit(self.tile_cache.get("yellowDot"), (tpos[0],tpos[1]+TILE_SIZE*self.game.scale))
-                print("d")
-                pass
+            # deeper layers not drawn
+
+    def make_faded(self, tile):
+        img = tile.image.copy()
+        img.set_alpha(120)
+        tile.image_faded = img
+        return img
 
     def iso_to_screen(self, pos):
         x, y, z = pos
-        # z += self.game.current_z
         sx = (x - y) * (TILE_SIZE // 2) * self.game.scale
         sy = (x + y) * (TILE_SIZE // 4) * self.game.scale  - z * (TILE_SIZE // 2) * self.game.scale
         return [sx, sy]
 
+    def moles_in_cube(self, pressure_pa=101325, temperature_k=290.15, volume_m3=1.0):
+        """
+        Calculate number of moles of ideal gas in a cube.
+
+        pressure_pa: Pressure in Pascals (Pa)
+        temperature_k: Temperature in Kelvin (K)
+        volume_m3: Volume in cubic meters (default=1 m³)
+
+        Returns: number of moles
+        """
+        R = 8.314462618  # J/(mol*K)
+        return (pressure_pa * volume_m3) / (R * temperature_k)
+
+
 class Tile:
-    def __init__(self, x, y, z, game, tile_handler, name="templateTile", tags=None):
+    def __init__(self, pos, game, name="templateTile", tags=None, gas=None, temperature=290.15, pressure=101325):
+        if gas is None:
+            gas = {"O2": 8.3, "N2": 33.2}
         if tags is None:
             tags = []
         self.game = game
         self.tags = tags
-        self.tile_handler = tile_handler
+        self.tile_handler = self.game.tile_handler
         self.name = name
+        self.gas = gas
+        self.temperature = temperature
+
         if name not in self.tile_handler.tile_cache:
             a = pygame.image.load(f"assets/tiles/{name}.png")
-            tile_handler.tile_cache[name] = a
+            self.tile_handler.tile_cache[name] = a
         else:
-            a = tile_handler.tile_cache[name]
+            a = self.tile_handler.tile_cache[name]
         self.img = a
         self.image = pygame.transform.scale_by(self.img, self.game.scale)
 
-        self.x, self.y, self.z = x,y,z
+        self.x, self.y, self.z = tuple(pos)
 
-    def get_tag(self, tag):
+    def has_tag(self, tag):
         return self.tags.__contains__(tag)

@@ -20,7 +20,7 @@ halfHEIGHT = HEIGHT / 2
 SCREEN_SIZE = (WIDTH, HEIGHT)
 # SCREEN_SIZE = (0, 0)
 
-SCALE = 4
+SCALE = 2
 
 # colors
 BLACK = (0, 0, 0)
