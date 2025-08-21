@@ -74,7 +74,7 @@ class CellManager:
         if self.cells.get(tuple(pos)):
             return self.cells[pos]
         else:
-            self.set_cell(pos, Cell(pos, self.game, "gas"))
+            self.set_cell(pos, Cell(pos, self.game, "empty"))
 
     def set_cell(self, pos, cell):
         self.cells[tuple(pos)] = cell
@@ -83,17 +83,17 @@ class CellManager:
         dt = self.game.dt
 
         # Diffusion
-        for cell in self.tiles.values():
+        for cell in self.cells.values():
             for neighbor in self.adjacent_cells(cell):
                 self.diffuse(cell, neighbor, dt)
 
         # Heat
-        for cell in self.tiles.values():
+        for cell in self.cells.values():
             for neighbor in self.adjacent_cells(cell):
-                self.transfer_heat(cell, neighbor, dt)
+                self.transfer_heat(cell, neighbor)
 
         # Update properties
-        for cell in self.tiles.values():
+        for cell in self.cells.values():
             self.update_cell(cell)
 
     def cell_distance(self, a, b):
