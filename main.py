@@ -9,7 +9,7 @@ class Game:
         self.current_z = 0
 
         # Managers
-        self.tile_manager = TileManager(self)
+        self.cell_manager = CellManager(self)
         self.player = Player(self)
 
         # Text
@@ -34,11 +34,11 @@ class Game:
         self.mouse_pos = []
         self.calculated_mouse_pos = []
 
-        self.current_tile = None
+        self.current_cell = None
 
         self.z_offset = 0
 
-        # ppos = self.tile_manager.iso_to_screen(self.player.pos)
+        # ppos = self.cell_manager.iso_to_screen(self.player.pos)
         # self.scroll = [ppos[0]+halfWIDTH-16, ppos[1]+halfHEIGHT-16]
 
     def text(self, txt, pos, color):
@@ -76,26 +76,26 @@ class Game:
     def update(self):
         self.current_z = self.player.pos[2] + self.z_offset
         self.mouse_pos = pygame.mouse.get_pos()
-        self.calculated_mouse_pos = self.tile_manager.screen_to_iso(self.mouse_pos, self.current_z)
+        self.calculated_mouse_pos = self.cell_manager.screen_to_iso(self.mouse_pos, self.current_z)
         c = self.calculated_mouse_pos
-        self.current_tile = self.tile_manager.get_tile((c[0]+self.current_z,c[1]+self.current_z,c[2]+self.current_z-1))
-        # if self.current_tile is None or self.current_tile.get_tag("pass_through"):
-        #     self.current_tile = self.tile_manager.get_tile((c[0],c[1],c[2]-1))
+        self.current_cell = self.cell_manager.get_cell((c[0]+self.current_z,c[1]+self.current_z,c[2]+self.current_z-1))
+        # if self.current_cell is None or self.current_cell.get_tag("pass_through"):
+        #     self.current_cell = self.cell_manager.get_cell((c[0],c[1],c[2]-1))
 
 
         self.player.update()
-        # ppos = self.tile_manager.iso_to_screen(self.player.pos)
+        # ppos = self.cell_manager.iso_to_screen(self.player.pos)
         # self.scroll = [-ppos[0]-(16 * self.scale) + halfWIDTH, -ppos[1]-(16 * self.scale) + halfHEIGHT]
 
     def draw(self):
-        self.tile_manager.draw()
+        self.cell_manager.draw()
         self.player.draw()
         s = pygame.surface.Surface((3,3))
         s.fill("red")
         self.screen.blit(s, (halfWIDTH-1, halfHEIGHT-1))
 
         self.text(f"Calculated mouse pos: {self.calculated_mouse_pos}", (10, 10), "black")
-        self.text(f"Active tile name: {self.current_tile.name if self.current_tile is not None else "None"}", (10, 40), "black")
+        self.text(f"Active cell name: {self.current_cell.name if self.current_cell is not None else "None"}", (10, 40), "black")
         self.text(f"FPS: {self.clock.get_fps()}", (10, 70), "black")
         self.text(f"Move cooldown: {self.player.move_cooldown}", (10, 100), "black")
         self.text(f"Cam offset: {self.z_offset}", (10, 130), "black")
@@ -115,6 +115,6 @@ class Game:
 
 if __name__ == '__main__':
     game = Game()
-    game.tile_manager.load_rect("stone", (-4,-4,-4), (8, 8, 4))
-    game.tile_manager.load_rect("stone", (-12,-12,-8), (16, 16, 4))
+    game.cell_manager.load_rect("stone", (-4,-4,-4), (8, 8, 4))
+    game.cell_manager.load_rect("stone", (-12,-12,-8), (16, 16, 4))
     game.main_loop_test()

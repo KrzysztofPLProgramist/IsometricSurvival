@@ -32,8 +32,8 @@ RED = (255, 0, 0)
 BG_COLOR = BLACK
 
 
-# tiles
-TILE_SIZE = 32
+# cells
+WALL_SIZE = 32
 
 
 

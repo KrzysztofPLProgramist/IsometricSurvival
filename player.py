@@ -25,7 +25,7 @@ class Player:
 
         if self.destination is not None and self.move_cooldown == 0:
             # if self.destination_tile is None or self.destination_tile.get_tag("can_stand_on"):
-            self.game.tile_manager.get_tile(self.destination).has_tag()
+            self.game.cell_manager.get_cell(self.destination).has_tag()
             self.pos = self.destination
             self.destination = None
 
