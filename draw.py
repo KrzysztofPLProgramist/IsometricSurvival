@@ -20,7 +20,10 @@ class CellManager:
             if neighbor:
                 yield neighbor
 
-    def diffuse(self, A, B, dt):
+    def diffuse(self, A, B):
+        dt = self.game.dt
+        A = A.cell
+        B = B.cell
         if A["n_total"] <= 0 and B["n_total"] <= 0:
             return
 
@@ -60,6 +63,7 @@ class CellManager:
 
     # --- Update cell properties after changes ---
     def update_cell(self, cell):
+        cell = cell.cell
         n_total = sum(cell["n"].values())
         cell["n_total"] = n_total
 
@@ -83,17 +87,20 @@ class CellManager:
         dt = self.game.dt
 
         # Diffusion
-        for cell in self.cells.values():
+        for cell in self.cells:
+            cell = cell.cell
             for neighbor in self.adjacent_cells(cell):
-                self.diffuse(cell, neighbor, dt)
+                self.diffuse(cell, neighbor)
 
         # Heat
-        for cell in self.cells.values():
+        for cell in self.cells:
+            cell = cell.cell
             for neighbor in self.adjacent_cells(cell):
                 self.transfer_heat(cell, neighbor)
 
         # Update properties
-        for cell in self.cells.values():
+        for cell in self.cells:
+            cell = cell.cell
             self.update_cell(cell)
 
     def cell_distance(self, a, b):
