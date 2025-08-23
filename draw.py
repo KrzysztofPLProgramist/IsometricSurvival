@@ -20,60 +20,6 @@ class CellManager:
             if neighbor:
                 yield neighbor
 
-    def diffuse(self, A, B):
-        dt = self.game.dt
-        A = A.cell
-        B = B.cell
-        if A["n_total"] <= 0 and B["n_total"] <= 0:
-            return
-
-        deltaP = A["P"] - B["P"]
-        if abs(deltaP) < 1e-6:
-            return
-
-        # how many moles should move (scaled by dt)
-        delta_n = self.k_diff * deltaP * dt / (R * ((A["T"] + B["T"]) / 2.0))
-        delta_n = min(max(delta_n, -A["n_total"]), B["n_total"] + A["n_total"])  # clamp
-
-        # move gases proportionally
-        for gas, frac in A["fractions"].items():
-            moved = frac * delta_n
-            A["n"][gas] -= moved
-            B["n"][gas] = B["n"].get(gas, 0) + moved
-
-    # --- Heat exchange between cells ---
-    def transfer_heat(self, A, B):
-        dt = self.game.dt
-        A = A.cell
-        B = B.cell
-        if A["n_total"] <= 0 or B["n_total"] <= 0:
-            return
-
-        deltaT = A["T"] - B["T"]
-        if abs(deltaT) < 1e-6:
-            return
-
-        q = self.k_heat * deltaT * dt
-
-        dT_A = -q / (A["n_total"] * C_v)
-        dT_B = q / (B["n_total"] * C_v)
-
-        A["T"] += dT_A
-        B["T"] += dT_B
-
-    # --- Update cell properties after changes ---
-    def update_cell(self, cell):
-        cell = cell.cell
-        n_total = sum(cell["n"].values())
-        cell["n_total"] = n_total
-
-        if n_total > 0:
-            cell["P"] = (n_total * R * cell["T"]) / cell["V"]
-            cell["fractions"] = {g: n / n_total for g, n in cell["n"].items()}
-        else:
-            cell["P"] = 0
-            cell["fractions"] = {}
-
     def get_cell(self, pos):
         if self.cells.get(tuple(pos)):
             return self.cells[pos]
@@ -82,26 +28,6 @@ class CellManager:
 
     def set_cell(self, pos, cell):
         self.cells[tuple(pos)] = cell
-
-    def update_gases(self):
-        dt = self.game.dt
-
-        # Diffusion
-        for cell in self.cells:
-            cell = cell.cell
-            for neighbor in self.adjacent_cells(cell):
-                self.diffuse(cell, neighbor)
-
-        # Heat
-        for cell in self.cells:
-            cell = cell.cell
-            for neighbor in self.adjacent_cells(cell):
-                self.transfer_heat(cell, neighbor)
-
-        # Update properties
-        for cell in self.cells:
-            cell = cell.cell
-            self.update_cell(cell)
 
     def cell_distance(self, a, b):
         """
@@ -212,23 +138,23 @@ class Cell:
         if cell is None:
             cell = {
                 "V": 1.0,  # volume (m³)
-                "T": 293.15,  # temperature (K)
-                "n": {"O2": 8.3, "N2": 33.2},  # moles of each gas
-                "n_total": 8.3 + 33.2
+                "T": 293,  # temperature (K)
+                "n": {"O2": 0.2, "N2": 0.8},  # moles of each gas
+                "n_total": 1
             }
         if tags is None:
             tags = []
         self.game = game
         self.tags = tags
-        self.cell_handler = self.game.cell_handler
+        self.cell_manager = self.game.cell_manager
         self.name = name
         self.cell = cell
 
-        if name not in self.cell_handler.cell_cache:
+        if name not in self.cell_manager.cell_cache:
             a = pygame.image.load(f"assets/cells/{name}.png")
-            self.cell_handler.cell_cache[name] = a
+            self.cell_manager.cell_cache[name] = a
         else:
-            a = self.cell_handler.cell_cache[name]
+            a = self.cell_manager.cell_cache[name]
         self.img = a
         self.image = pygame.transform.scale_by(self.img, self.game.scale)
 
