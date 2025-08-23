@@ -2,6 +2,8 @@ import pygame.time
 
 from draw import *
 from player import *
+from worldgen import WorldGenerator
+
 
 class Game:
     def __init__(self):
@@ -115,6 +117,8 @@ class Game:
 
 if __name__ == '__main__':
     game = Game()
-    game.cell_manager.load_rect("stone", (-4,-4,-4), (8, 8, 4))
-    game.cell_manager.load_rect("stone", (-12,-12,-8), (16, 16, 4))
+    generator = WorldGenerator(game.cell_manager)
+    #game.cell_manager.load_rect("stone", (-4,-4,-4), (8, 8, 4))
+    #game.cell_manager.load_rect("stone", (-12,-12,-8), (16, 16, 4))
+    generator.generate()
     game.main_loop_test()
