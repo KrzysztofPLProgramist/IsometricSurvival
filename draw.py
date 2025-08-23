@@ -114,7 +114,6 @@ class CellManager:
                 self.game.screen.blit(cell.image, tpos)
             elif dz == 0:
                 # one layer above = faded
-                print("fade")
                 img = cell.image_faded if hasattr(cell, "image_faded") else self.make_faded(cell)
                 self.game.screen.blit(img, tpos)
 
