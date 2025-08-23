@@ -11,7 +11,7 @@ class Player:
 
         self.move_cooldown = 0.5
         self.destination = None
-        self.destination_tile = None
+        self.destination_cell = None
 
     def update(self):
         if self.move_cooldown > 0:
@@ -19,13 +19,13 @@ class Player:
         if self.move_cooldown < 0:
             self.move_cooldown = 0
         if self.game.m1_down_tf:
-            if self.game.tile_manager.tile_distance(self.pos, self.game.calculated_mouse_pos) < 2:
+            if self.game.cell_manager.cell_distance(self.pos, self.game.calculated_mouse_pos) < 2:
                 self.destination = self.game.calculated_mouse_pos
-                self.destination_tile = self.game.current_tile
+                self.destination_cell = self.game.current_cell
 
         if self.destination is not None and self.move_cooldown == 0:
-            # if self.destination_tile is None or self.destination_tile.get_tag("can_stand_on"):
-            self.game.cell_manager.get_cell(self.destination).has_tag()
+            # if self.destination_cell is None or self.destination_cell.get_tag("can_stand_on"):
+            self.game.cell_manager.get_cell(self.destination).has_tag("can_stand_on")
             self.pos = self.destination
             self.destination = None
 

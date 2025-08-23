@@ -75,6 +75,7 @@ class CellManager:
             return self.cells[pos]
         else:
             self.set_cell(pos, Cell(pos, self.game, "empty"))
+            return self.cells[pos]
 
     def set_cell(self, pos, cell):
         self.cells[tuple(pos)] = cell
@@ -213,15 +214,15 @@ class Cell:
             tags = []
         self.game = game
         self.tags = tags
-        self.cell_handler = self.game.cell_handler
+        self.cell_manager = self.game.cell_manager
         self.name = name
         self.cell = cell
 
-        if name not in self.cell_handler.cell_cache:
+        if name not in self.cell_manager.cell_cache:
             a = pygame.image.load(f"assets/cells/{name}.png")
-            self.cell_handler.cell_cache[name] = a
+            self.cell_manager.cell_cache[name] = a
         else:
-            a = self.cell_handler.cell_cache[name]
+            a = self.cell_manager.cell_cache[name]
         self.img = a
         self.image = pygame.transform.scale_by(self.img, self.game.scale)
 
