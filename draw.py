@@ -72,7 +72,7 @@ class CellManager:
         x = (A + B) / 2 + self.game.player.pos[0]
         y = (B - A) / 2 + self.game.player.pos[1]
 
-        return int(x // 1) - 1, int(y // 1) - 1, z
+        return int(x // 1) - 1 - self.game.current_z, int(y // 1) - 1 - self.game.current_z, z
 
     def draw(self):
         """
@@ -107,21 +107,23 @@ class CellManager:
 
             # compute how far this cell's z is from current z
             dz = pos[2] - self.game.current_z + 1
+            # if dz == 0 or (pos[2] >= self.game.player.pos[2] and (pos[1] > self.game.player.pos[1] and pos[0] > self.game.player.pos[0])):
 
-            if dz == 0 or dz == -1:
+            if 1 >= dz >= -1:
                 # current layer = normal
                 self.game.screen.blit(cell.image, tpos)
-
-            elif dz == 1:
+            elif dz == 0:
                 # one layer above = faded
+                print("fade")
                 img = cell.image_faded if hasattr(cell, "image_faded") else self.make_faded(cell)
                 self.game.screen.blit(img, tpos)
+
 
             # deeper layers not drawn
 
     def make_faded(self, cell):
         img = cell.image.copy()
-        img.set_alpha(120)
+        img.set_alpha(60)
         cell.image_faded = img
         return img
 
@@ -140,7 +142,7 @@ class Cell:
                 "gas": {"O2": 0.2, "N2": 0.8},  # 1m^3 of each gas
                 "gas_total": 1,
                 "fluid": {},
-                "fluid_total": {}
+                "fluid_total": 0
             }
         if tags is None:
             tags = []
@@ -167,7 +169,7 @@ class Cell:
         for i in neighbors:
             if self.cell["gas_total"] > i.cell["gas_total"]:
                 difference = self.cell["gas_total"] - i.cell["gas_total"]
-                calc_difference = difference / 2
+                calc_difference = difference * self.cell_manager.diffusion_speed()
                 i.cell["gas_total"] += calc_difference
                 self.cell["gas_total"] -= calc_difference
 

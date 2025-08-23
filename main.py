@@ -100,8 +100,11 @@ class Game:
         self.text(f"Active cell name: {self.current_cell.name if self.current_cell is not None else "None"}", (10, 40), "black")
         self.text(f"FPS: {self.clock.get_fps()}", (10, 70), "black")
         self.text(f"Move cooldown: {self.player.move_cooldown}", (10, 100), "black")
-        self.text(f"Cam offset: {self.z_offset}", (10, 130), "black")
-        self.text(f"Current z: {self.current_z}", (10, 160), "black")
+        self.text(f"Fall cooldown: {self.player.move_cooldown}", (10, 130), "black")
+        self.text(f"Cam offset: {self.z_offset}", (10, 160), "black")
+        self.text(f"Current z: {self.current_z}", (10, 190), "black")
+        self.text(f"Cell: {self.current_cell.cell}", (10, 220), "black")
+        self.text(f"Player pos:: {self.player.pos}", (10, 250), "black")
 
     def main_loop_test(self):
         while self.main_loop_running:
