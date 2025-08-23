@@ -1,16 +1,16 @@
 from config import *
-R = 8.314  # Ideal gas constant J/(mol*K)
-C_v = 20.8 # Molar heat capacity J/(mol*K), approx for diatomic gases
+
+
 
 class CellManager:
     def __init__(self, game):
         self.game = game
         self.cells = {}
         self.changes = {}
-        self.cell_cache = {"yellowDot": pygame.image.load("assets/cells/yellowDot.png")}
+        self.cell_cache = {"yellowDot": pygame.image.load("assets/cells/yellowDot.png"), "empty": None}
 
-        self.k_diff = 0.5  # diffusion coefficient
-        self.k_heat = 1.0  # heat transfer coefficient
+        self.diffusion_speed = 0.5
+        self.heat_transfer_speed = 1.0  # heat transfer coefficient
 
     def adjacent_cells(self, cell):
         x, y, z = cell["pos"]
@@ -24,11 +24,15 @@ class CellManager:
         if self.cells.get(tuple(pos)):
             return self.cells[pos]
         else:
-            self.set_cell(pos, Cell(pos, self.game, "empty"))
+            self.set_cell(Cell(pos, self.game, "empty"))
             return self.cells[pos]
 
-    def set_cell(self, pos, cell):
-        self.cells[tuple(pos)] = cell
+    def simulate(self):
+        for i in self.cells:
+            i.update()
+
+    def set_cell(self, cell):
+        self.cells[(cell.x, cell.y, cell.z)] = cell
 
     def cell_distance(self, a, b):
         """
@@ -122,13 +126,14 @@ class CellManager:
 
 
 class Cell:
-    def __init__(self, pos, game, name="templatecell", tags=None, cell=None):
+    def __init__(self, pos, game, name="templateCell", tags=None, cell=None):
         if cell is None:
             cell = {
-                "V": 1.0,  # volume (m³)
-                "T": 293,  # temperature (K)
-                "n": {"O2": 0.2, "N2": 0.8},  # 1m^3 of each gas
-                "n_total": 1
+                "temperature": 293,  # temperature (K)
+                "gas": {"O2": 0.2, "N2": 0.8},  # 1m^3 of each gas
+                "gas_total": 1,
+                "fluid": {},
+                "fluid_total": {}
             }
         if tags is None:
             tags = []
@@ -144,9 +149,20 @@ class Cell:
         else:
             a = self.cell_manager.cell_cache[name]
         self.img = a
-        self.image = pygame.transform.scale_by(self.img, self.game.scale)
+        self.image = None
+        if self.img is not None: self.image = pygame.transform.scale_by(self.img, self.game.scale)
 
         self.x, self.y, self.z = tuple(pos)
+
+    def update(self):
+        neighbors = self.cell_manager.adjacent_cells
+        neighbors.shuffle()
+        for i in neighbors:
+            if self.cell["gas_total"] > i.cell["gas_total"]:
+                difference = self.cell["gas_total"] - i.cell["gas_total"]
+                half_difference = difference / 2
+                i.cell["gas_total"] += half_difference
+                self.cell["gas_total"] -= half_difference
 
     def has_tag(self, tag):
         return self.tags.__contains__(tag)
