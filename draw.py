@@ -79,7 +79,7 @@ class CellManager:
         for pos, cell in sorted(self.cells.items(), key=lambda item: (item[0][0] + item[0][1], item[0][2])):
             cell: cell
 
-            if cell.name == "gas":
+            if cell.name == "empty":
                 continue
 
             ppos = list(pos)
@@ -120,19 +120,6 @@ class CellManager:
         sy = (x + y) * (WALL_SIZE // 4) * self.game.scale  - z * (WALL_SIZE // 2) * self.game.scale
         return [sx, sy]
 
-    def moles_in_cube(self, pressure_pa=101325, temperature_k=290.15, volume_m3=1.0):
-        """
-        Calculate number of moles of ideal gas in a cube.
-
-        pressure_pa: Pressure in Pascals (Pa)
-        temperature_k: Temperature in Kelvin (K)
-        volume_m3: Volume in cubic meters (default=1 m³)
-
-        Returns: number of moles
-        """
-        R = 8.314462618  # J/(mol*K)
-        return (pressure_pa * volume_m3) / (R * temperature_k)
-
 
 class Cell:
     def __init__(self, pos, game, name="templatecell", tags=None, cell=None):
@@ -140,7 +127,7 @@ class Cell:
             cell = {
                 "V": 1.0,  # volume (m³)
                 "T": 293,  # temperature (K)
-                "n": {"O2": 0.2, "N2": 0.8},  # moles of each gas
+                "n": {"O2": 0.2, "N2": 0.8},  # 1m^3 of each gas
                 "n_total": 1
             }
         if tags is None:
