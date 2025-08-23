@@ -1,3 +1,5 @@
+from pygame.examples.grid import TILE_SIZE
+
 from config import *
 
 
@@ -98,6 +100,11 @@ class CellManager:
             if cell is self.game.current_cell:
                 tpos[1] += 0.1
 
+            if 0+WALL_SIZE*self.game.scale > tpos[0] > WIDTH:
+                continue
+            if 0+WALL_SIZE*self.game.scale > tpos[1] > HEIGHT:
+                continue
+
             # compute how far this cell's z is from current z
             dz = pos[2] - self.game.current_z + 1
 
@@ -160,9 +167,9 @@ class Cell:
         for i in neighbors:
             if self.cell["gas_total"] > i.cell["gas_total"]:
                 difference = self.cell["gas_total"] - i.cell["gas_total"]
-                half_difference = difference / 2
-                i.cell["gas_total"] += half_difference
-                self.cell["gas_total"] -= half_difference
+                calc_difference = difference / 2
+                i.cell["gas_total"] += calc_difference
+                self.cell["gas_total"] -= calc_difference
 
     def has_tag(self, tag):
         return self.tags.__contains__(tag)
