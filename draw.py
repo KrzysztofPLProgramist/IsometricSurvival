@@ -25,6 +25,7 @@ class CellManager:
             return self.cells[pos]
         else:
             self.set_cell(pos, Cell(pos, self.game, "empty"))
+            return self.cells[pos]
 
     def set_cell(self, pos, cell):
         self.cells[tuple(pos)] = cell
