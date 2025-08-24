@@ -95,6 +95,8 @@ class Game:
         s = pygame.surface.Surface((3,3))
         s.fill("red")
         self.screen.blit(s, (halfWIDTH-1, halfHEIGHT-1))
+
+        
         #yellow dot
         yellow_dot = pygame.image.load("assets/cells/yellowDot.png")
         yellow_dot = pygame.transform.scale_by(yellow_dot, (self.scale, self.scale))
@@ -108,6 +110,7 @@ class Game:
         ydpy *= WALL_SIZE/2
         ydpy += halfHEIGHT-WALL_SIZE
         self.screen.blit(yellow_dot, (ydpx, ydpy))
+
 
         self.text(f"Calculated mouse pos: {self.calculated_mouse_pos}", (10, 10), "black")
         self.text(f"Active cell name: {self.current_cell.name if self.current_cell is not None else "None"}", (10, 40), "black")
