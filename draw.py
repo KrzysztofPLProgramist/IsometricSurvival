@@ -12,7 +12,10 @@ class CellManager:
         self.cell_cache = {"yellowDot": pygame.image.load("assets/cells/yellowDot.png"), "empty": None}
 
         self.diffusion_speed = 0.5
-        self.heat_transfer_speed = 1.0  # heat transfer coefficient
+        self.heat_transfer_speed = .25  # heat transfer coefficient
+
+    def clear(self):
+        self.cells = {}
 
     def adjacent_cells(self, cell):
         x, y, z = cell["pos"]
@@ -74,7 +77,7 @@ class CellManager:
 
         return int(x // 1) - 1 - self.game.current_z, int(y // 1) - 1 - self.game.current_z, z
 
-    def draw(self):
+    def draw(self, iwonttellyou):
         """
         Draw cells with z_offset controlling which layers are visible.
         - current layer = fully visible
@@ -85,6 +88,30 @@ class CellManager:
         for pos, cell in sorted(self.cells.items(), key=lambda item: (item[0][0] + item[0][1], item[0][2])):
             cell: cell
 
+            if cell == "player":
+                self.game.player.draw()
+                continue
+            elif cell == "yellow_dot":
+                try:
+                    if iwonttellyou[pos]:
+                        self.game.draw_yellow_dot(1)
+                except Exception:
+                    self.game.draw_yellow_dot(0)
+
+                try:
+                    tile = iwonttellyou[pos]
+                    ppos = list(pos)
+                    ppos[0] -= self.game.player.pos[0]
+                    ppos[1] -= self.game.player.pos[1]
+                    ppos[2] -= self.game.player.pos[2]
+                    tpos = self.iso_to_screen(ppos)
+                    tpos[0] += halfWIDTH - (WALL_SIZE // 2) * self.game.scale
+                    tpos[1] += halfHEIGHT - (WALL_SIZE // 2) * self.game.scale
+                    #img = cell.image_faded if hasattr(cell, "image_faded") else self.make_faded(tile)
+                    self.game.screen.blit(tile, tpos)
+                except Exception:
+                    continue
+                continue
             if cell.name == "empty":
                 continue
 
@@ -108,8 +135,11 @@ class CellManager:
             # compute how far this cell's z is from current z
             dz = pos[2] - self.game.current_z + 1
             # if dz == 0 or (pos[2] >= self.game.player.pos[2] and (pos[1] > self.game.player.pos[1] and pos[0] > self.game.player.pos[0])):
-
-            if 1 >= dz >= -1:
+            if pos[0]-1==self.game.player.pos[0] and pos[1]-1==self.game.player.pos[1]:
+                img = cell.image_faded if hasattr(cell, "image_faded") else self.make_faded(cell)
+                self.game.screen.blit(img, tpos)
+                continue
+            if 1 >= dz:
                 # current layer = normal
                 self.game.screen.blit(cell.image, tpos)
             elif dz == 0:
@@ -122,7 +152,7 @@ class CellManager:
 
     def make_faded(self, cell):
         img = cell.image.copy()
-        img.set_alpha(60)
+        img.set_alpha(150)
         cell.image_faded = img
         return img
 

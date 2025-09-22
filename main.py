@@ -40,6 +40,8 @@ class Game:
 
         self.z_offset = 0
 
+        self.generator = WorldGenerator(self.cell_manager)
+
         # ppos = self.cell_manager.iso_to_screen(self.player.pos)
         # self.scroll = [ppos[0]+halfWIDTH-16, ppos[1]+halfHEIGHT-16]
 
@@ -55,6 +57,9 @@ class Game:
             self.m1_down = True
 
         if keys[pygame.K_ESCAPE]: self.main_loop_running = False
+        if keys[pygame.K_r]:
+            self.generator.generate()
+            self.player = Player(self)
 
         # if keys[pygame.K_LEFT]:
         #     self.camera_offset[0] -= 1
@@ -89,28 +94,33 @@ class Game:
         # ppos = self.cell_manager.iso_to_screen(self.player.pos)
         # self.scroll = [-ppos[0]-(16 * self.scale) + halfWIDTH, -ppos[1]-(16 * self.scale) + halfHEIGHT]
 
-    def draw(self):
-        self.cell_manager.draw()
-        self.player.draw()
-        s = pygame.surface.Surface((3,3))
-        s.fill("red")
-        self.screen.blit(s, (halfWIDTH-1, halfHEIGHT-1))
-
-        
-        #yellow dot
+    def draw_yellow_dot(self, shiftz=0):
+        # yellow dot
         yellow_dot = pygame.image.load("assets/cells/yellowDot.png")
         yellow_dot = pygame.transform.scale_by(yellow_dot, (self.scale, self.scale))
 
-        ydpx = self.calculated_mouse_pos[0] -self.calculated_mouse_pos[1]
+        # Yellow dot penis x lol
+        ydpx = self.calculated_mouse_pos[0] - self.calculated_mouse_pos[1]
         ydpx -= self.player.pos[0] - self.player.pos[1]
         ydpx *= WALL_SIZE
         ydpx += halfWIDTH - WALL_SIZE
+        # Yellow dot penis y lol
         ydpy = self.calculated_mouse_pos[0] + self.calculated_mouse_pos[1]
-        ydpy -= self.player.pos[0] + self.player.pos[1]
-        ydpy *= WALL_SIZE/2
-        ydpy += halfHEIGHT-WALL_SIZE
+        ydpy -= self.player.pos[0] + self.player.pos[1] + shiftz * 2
+        ydpy *= WALL_SIZE / 2
+        ydpy += halfHEIGHT - WALL_SIZE
         self.screen.blit(yellow_dot, (ydpx, ydpy))
 
+    def draw(self):
+        temp = self.cell_manager.cells.copy()
+        self.cell_manager.cells[tuple(self.calculated_mouse_pos)] = "yellow_dot"
+        self.cell_manager.cells[tuple(self.player.pos)] = "player"
+        self.cell_manager.draw(temp)
+        self.cell_manager.cells = temp
+        # self.player.draw()
+        s = pygame.surface.Surface((3,3))
+        s.fill("red")
+        self.screen.blit(s, (halfWIDTH-1, halfHEIGHT-1))
 
         self.text(f"Calculated mouse pos: {self.calculated_mouse_pos}", (10, 10), "black")
         self.text(f"Active cell name: {self.current_cell.name if self.current_cell is not None else "None"}", (10, 40), "black")
@@ -134,10 +144,13 @@ class Game:
 
             pygame.display.flip()
 
-if __name__ == '__main__':
+def start():
     game = Game()
-    generator = WorldGenerator(game.cell_manager)
     #game.cell_manager.load_rect("stone", (-4,-4,-4), (8, 8, 4))
     #game.cell_manager.load_rect("stone", (-12,-12,-8), (16, 16, 4))
-    generator.generate()
+    game.generator.generate()
     game.main_loop_test()
+    return game
+
+if __name__ == '__main__':
+    game = start()
