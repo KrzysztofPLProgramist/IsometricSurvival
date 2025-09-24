@@ -135,7 +135,8 @@ class CellManager:
             # compute how far this cell's z is from current z
             dz = pos[2] - self.game.current_z + 1
             # if dz == 0 or (pos[2] >= self.game.player.pos[2] and (pos[1] > self.game.player.pos[1] and pos[0] > self.game.player.pos[0])):
-            if pos[0]-1==self.game.player.pos[0] and pos[1]-1==self.game.player.pos[1]:
+            px, py, pz = self.game.player.pos
+            if (pos[0] - 1 == px and pos[1] == py) or (pos[1] - 1 == py and pos[0] == px) or (pos[1] - 1 == py and pos[0] - 1 == px):
                 img = cell.image_faded if hasattr(cell, "image_faded") else self.make_faded(cell)
                 self.game.screen.blit(img, tpos)
                 continue

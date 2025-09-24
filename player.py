@@ -27,8 +27,10 @@ class Player:
         if self.destination is not None and self.move_cooldown <= 0:
             if not self.destination == "player":
                 # if self.destination_cell is None or self.destination_cell.get_tag("can_stand_on"):
-                self.game.cell_manager.get_cell(self.destination).has_tag("can_stand_on")
-                self.pos = self.destination
+                if self.game.cell_manager.get_cell(self.destination).has_tag("can_stand_on"):
+                    self.pos = [self.destination[0], self.destination[1], self.destination[2]+1]
+                else:
+                    self.pos = self.destination
                 self.destination = None
 
                 self.move_cooldown = 0.5

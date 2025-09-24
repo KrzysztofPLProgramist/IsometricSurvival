@@ -106,7 +106,8 @@ class Game:
         ydpx += halfWIDTH - WALL_SIZE
         # Yellow dot penis y lol
         ydpy = self.calculated_mouse_pos[0] + self.calculated_mouse_pos[1]
-        ydpy -= self.player.pos[0] + self.player.pos[1] + shiftz * 2
+        ydpy -= (self.player.pos[0] + self.player.pos[1] + shiftz
+                 * 2)
         ydpy *= WALL_SIZE / 2
         ydpy += halfHEIGHT - WALL_SIZE
         self.screen.blit(yellow_dot, (ydpx, ydpy))

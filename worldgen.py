@@ -11,3 +11,7 @@ class WorldGenerator:
             for y in range(-10, 10):
                 if randint(0, 1) == 0:
                     self.cell_manager.set_cell(Cell((x, y, -1), self.cell_manager.game, "dirt", ["solid", "can_stand_on"]))
+        # for x in range(-10, 10):
+        #     for y in range(-10, 10):
+        #         if randint(0, 2) == 0:
+        #             self.cell_manager.set_cell(Cell((x, y, 0), self.cell_manager.game, "dirt", ["solid", "can_stand_on"]))
